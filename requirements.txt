@@ -1,0 +1,6 @@
+streamlit
+langsmith
+langchain-classic
+langchain-community
+langchain-google-genai
+ddgs
