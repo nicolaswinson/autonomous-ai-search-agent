@@ -69,11 +69,31 @@ if st.button("Run Agent", type="primary"):
     if not user_query.strip():
         st.warning("Please enter a prompt first.")
     else:
-        with st.spinner("Agent is running. If Google's servers are busy, it will auto-retry..."):
+        with st.spinner("Agent is thinking and executing tools..."):
             try:
+                # Run the agent
                 response = agent_executor.invoke({"input": user_query})
+                
+                # EXTRACT & CLEAN TEXT BUGS: Safe handling for Gemini's block format
+                raw_output = response.get("output", "")
+                
+                if isinstance(raw_output, list) and len(raw_output) > 0:
+                    if isinstance(raw_output[0], dict) and "text" in raw_output[0]:
+                        clean_output = raw_output[0]["text"]
+                    else:
+                        clean_output = str(raw_output[0])
+                elif isinstance(raw_output, dict) and "text" in raw_output:
+                    clean_output = raw_output["text"]
+                else:
+                    clean_output = str(raw_output)
+
+                # Fix literal '\n' text flags if any exist in the string
+                clean_output = clean_output.replace("\\n", "\n")
+                
+                # Display Results beautifully as Markdown text
                 st.success("Task Completed!")
                 st.markdown("### Final Answer")
-                st.write(response["output"])
+                st.markdown(clean_output)
+                
             except Exception as e:
                 st.error(f"An error occurred during execution: {e}")
